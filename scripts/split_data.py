@@ -56,7 +56,7 @@ for fil in files:
             for line in f:
                 data = line.strip().split(' ')
                 bbox = [float(x) for x in data[1:]]
-                bboxes.append(yolo_to_xml_bbox(bbox, img.width, img.height))
+                bboxes.append(bbox)
     
     # Determine if there is a large or a small bbox in the image (since there is more small
     # bboxes than medium and large in SARD we clasify the image depending on the largest

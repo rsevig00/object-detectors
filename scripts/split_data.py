@@ -1,3 +1,4 @@
+from cgi import test
 import random
 import glob
 import os
@@ -24,16 +25,53 @@ input_dir = input("Type the name of the folder containing non-splitted images an
 image_dir = os.path.join(input_dir, "images/")
 label_dir = os.path.join(input_dir, "annotations")
 output_dir = input("Type the name of the folder containing the new splitted data: ")
-lower_limit = 0
+lower_limit_small = 0
+lower_limit_medium = 0
+lower_limit_large = 0
 files = glob.glob(os.path.join(image_dir, '*.jpg'))
 
 # Shuffle the files
 random.shuffle(files)
 
 # Set the proportions
-folders = {"train": 0.8, "val": 0.1, "test": 0.1}
-check_sum = sum([folders[x] for x in folders])
-assert check_sum == 1.0, "Split proportion is not equal to 1.0"
+train_value = input("Type the percentage of data to use for training: ")
+val_value = input("Type the percentage of data to use for validation: ")
+test_value = input("Type the percentage of data to use for testing: ")
+folders = {"train": train_value, "val": val_value, "test": test_value}
+assert train_value + val_value + test_value == 1.0, "Split proportion is not equal to 1.0"
+
+# Separate files in small, medium, and large bbox
+small = []
+medium = []
+large = []
+for fil in files:
+    bboxes = []
+    basename = os.path.basename(fil)
+    filename = os.path.splitext(basename)[0]
+    label_filename = os.path.join(label_dir, f"{filename}.txt")
+
+    # Collect the bboxes of the file
+    if os.path.exists(label_filename):
+        with open(label_filename, 'r', encoding='utf8') as f:
+            for line in f:
+                data = line.strip().split(' ')
+                bbox = [float(x) for x in data[1:]]
+                bboxes.append(yolo_to_xml_bbox(bbox, img.width, img.height))
+    
+    # Determine if there is a large or a small bbox in the image (since there is more small
+    # bboxes than medium and large in SARD we clasify the image depending on the largest
+    # bbox in the image)
+    max_size = 0
+    for bbox in bboxes:
+        w, h = bbox[3], bbox[4]
+        if w*h > max_size:
+            max_size = w*h
+    if max_size < 32^2:
+        small.append(fil)
+    elif max_size < 96^2 and max_size > 32^2:
+        medium.append(fil)
+    else:
+        large.append(fil)
 
 # Create folders and put images in it (no balancing of image proportion for now)
 for folder in folders:
@@ -45,6 +83,19 @@ for folder in folders:
     temp_image_dir = os.path.join(output_dir, folder, "images/")
     if not os.path.isdir(temp_image_dir):
         os.mkdir(temp_image_dir)
-    limit = round(len(files) * folders[folder])
-    for fil in files[lower_limit:lower_limit + limit]:
+
+    # For each category we remember the lower limit (can be optimized)
+    limit_small = round(len(small) * folders[folder])
+    for fil in small[lower_limit_small: lower_limit_small + limit_small]:
         copyfiles(fil, os.path.join(output_dir, folder))
+    lower_limit_small = lower_limit_small + limit_small
+
+    limit_medium = round(len(medium) * folders[folder])
+    for fil in medium[lower_limit_medium: lower_limit_medium + limit_medium]:
+        copyfiles(fil, os.path.join(output_dir, folder))
+    lower_limit_medium = lower_limit_medium + limit_medium
+
+    limit_large = round(len(large) * folders[folder])
+    for fil in large[lower_limit_large: lower_limit_large + limit_large]:
+        copyfiles(fil, os.path.join(output_dir, folder))
+    lower_limit_large = lower_limit_large + limit_large

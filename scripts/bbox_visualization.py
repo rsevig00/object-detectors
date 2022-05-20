@@ -3,12 +3,12 @@ import random
 import os
 
 def yolo_to_xml_bbox(bbox, w, h):
-    width_half = bbox[2] / 2
-    heigh_half = bbox[3] / 2
-    xmin = int(bbox[0] - width_half)
-    ymin = int(bbox[1] - heigh_half)
-    xmax = int(bbox[0] + width_half)
-    ymax = int(bbox[1] + heigh_half)
+    width_half = (bbox[2] * w) / 2
+    heigh_half = (bbox[3] * h) / 2
+    xmin = int(bbox[0] * w - width_half)
+    ymin = int(bbox[1] * h - heigh_half)
+    xmax = int(bbox[0] * w + width_half)
+    ymax = int(bbox[1] * h + heigh_half)
     return [xmin, ymin, xmax, ymax]
 
 def draw_image(img, bboxes):

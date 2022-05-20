@@ -14,8 +14,10 @@ classes = ["Person"] # We will only use one class here
 input_dir = input("Type the name of the folder containing images and XML files: ")
 image_dir = input_dir
 new_dir = input("Type the name of the new directory which will contain files and annotations: ")
-output_dir = new_dir + "annotations/"
-image_output = new_dir + "images/"
+if not os.path.isdir(new_dir):
+    os.mkdir(new_dir)
+output_dir = os.path.join(new_dir, "annotations/")
+image_output = os.path.join(new_dir, "images/")
 
 # If directory for annotations and images do not exist, make them
 if not os.path.isdir(output_dir):

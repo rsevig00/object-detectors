@@ -1,4 +1,5 @@
 from cgi import test
+from decimal import Decimal
 import random
 import glob
 import os
@@ -25,6 +26,8 @@ input_dir = input("Type the name of the folder containing non-splitted images an
 image_dir = os.path.join(input_dir, "images/")
 label_dir = os.path.join(input_dir, "annotations")
 output_dir = input("Type the name of the folder containing the new splitted data: ")
+if not os.path.isdir(output_dir):
+    os.mkdir(output_dir)
 lower_limit_small = 0
 lower_limit_medium = 0
 lower_limit_large = 0
@@ -34,9 +37,9 @@ files = glob.glob(os.path.join(image_dir, '*.jpg'))
 random.shuffle(files)
 
 # Set the proportions
-train_value = input("Type the percentage of data to use for training: ")
-val_value = input("Type the percentage of data to use for validation: ")
-test_value = input("Type the percentage of data to use for testing: ")
+train_value = Decimal(input("Type the percentage of data to use for training: "))
+val_value = Decimal(input("Type the percentage of data to use for validation: "))
+test_value = Decimal(input("Type the percentage of data to use for testing: "))
 folders = {"train": train_value, "val": val_value, "test": test_value}
 assert train_value + val_value + test_value == 1.0, "Split proportion is not equal to 1.0"
 
@@ -55,15 +58,15 @@ for fil in files:
         with open(label_filename, 'r', encoding='utf8') as f:
             for line in f:
                 data = line.strip().split(' ')
-                bbox = [float(x) for x in data[1:]]
-                bboxes.append(bbox)
+                bb = [float(x) for x in data[1:]]
+                bboxes.append(bb)
     
     # Determine if there is a large or a small bbox in the image (since there is more small
     # bboxes than medium and large in SARD we clasify the image depending on the largest
     # bbox in the image)
     max_size = 0
     for bbox in bboxes:
-        w, h = bbox[3], bbox[4]
+        w, h = bbox[2], bbox[3]
         if w*h > max_size:
             max_size = w*h
     if max_size < 32^2:

@@ -4,10 +4,10 @@ import glob
 import os
 
 def xml_to_yolo_bbox(bbox, w, h):
-    x_center = (bbox[2] + bbox[0])/2
-    y_center = (bbox[3] + bbox[1])/2
-    width = bbox[2] - bbox[0]
-    height = bbox[3] - bbox[1]
+    x_center = ((bbox[2] + bbox[0])/2) / w
+    y_center = ((bbox[3] + bbox[1])/2) / h
+    width = (bbox[2] - bbox[0]) / w
+    height = (bbox[3] - bbox[1]) / h
     return [x_center, y_center, width, height]
 
 classes = ["Person"] # We will only use one class here

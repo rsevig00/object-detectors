@@ -18,23 +18,23 @@ def draw_image(img, bboxes):
     img.show()
 
 # Randomly select an image
-input_dir = input("Type the name of the folder containing images and annotations: ")
-image_dir = os.path.join(input_dir, "images/")
-annotation_dir = os.path.join(input_dir, "annotations/")
-num_of_images = len([file for file in os.listdir(image_dir)]) + 1
-image_num = random.randint(1, num_of_images)
-filename = f"gss{image_num}"
-if not os.path.exists(os.path.join(image_dir, f"{filename}.jpg")):
-        print(f"{filename} image does not exist!")
+input_dir = input("Type the name of the folder containing the database: ")
+train_image_dir = os.path.join(input_dir, "train/images/")
+train_label_dir = os.path.join(input_dir, "train/labels/")
+image_filename = random.choice(os.listdir(train_image_dir))
+split_filename = image_filename.split(".")
+label_filename = split_filename[0] + "." + split_filename[1] + "." + split_filename[2] + ".txt"
+if not os.path.exists(os.path.join(train_image_dir, image_filename)):
+        print(f"{image_filename} image does not exist!")
         exit(1)
 
-image_filename = image_dir + f"{filename}.jpg"
-label_filename = annotation_dir + f"{filename}.txt"
+image_dir = train_image_dir + image_filename
+label_dir = train_label_dir + label_filename
 bboxes = []
 
 # Collect the bboxes corresponding to the image in the PVOC format (because Pillow works with pixels so more convenient)
-img = Image.open(image_filename)
-with open(label_filename, 'r', encoding='utf8') as f:
+img = Image.open(image_dir)
+with open(label_dir, 'r', encoding='utf8') as f:
     for line in f:
         data = line.strip().split(' ')
         bbox = [float(x) for x in data[1:]]
